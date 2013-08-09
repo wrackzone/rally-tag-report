@@ -1,13 +1,13 @@
-release-defect-trend
+rally-tag-report
 =========================
 
 ## Overview
-Shows a trend of defect count for a selected release.
+Creates a grid that can be used in Rally's Custom HTML app for getting information on tag usage.
 
-Demonstrates how to use the TimeSeriesCalculator to define series categories eg.
-Count of open defects, count of closed defects, count of verified defects.
-
-![My image](https://raw.github.com/wrackzone/release-defect-trend/master/release-defect-trend.png)
+Generates a list of all tags and what artifacts they're used in.  Also uses Rally's Lookback API to 
+determine who created the tag and when the tag was created by looking back to the earliest snapshot
+in which the tag was used to see who created the revision in which the tag was first used and also 
+what the revision date was.
 
 ## License
 
