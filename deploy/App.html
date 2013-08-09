@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>rally-tag-report</title>
+
+    <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("CustomApp",{extend:"Rally.app.App",componentCls:"app",launch:function(){Ext.create("Rally.data.WsapiDataStore",{model:"Tag",fetch:["Name"],autoLoad:!0,listeners:{load:this._retrieveArtifacts,scope:this}})},_retrieveArtifacts:function(store,data){var records=[];Ext.Array.each(data,function(record){records.push({Name:record.get("Name"),Creator:null,DateCreated:null,UsedIn:null})}),this.add({xtype:"rallygrid",store:Ext.create("Rally.data.custom.Store",{data:records,pageSize:5}),columnCfgs:[{text:"Name",dataIndex:"Name",flex:1},{text:"Added By",dataIndex:"Creator"},{text:"Created On",dataIndex:"DateCreated"},{text:"Associated Artifacts",dataIndex:"UsedIn"}]})}});
+
+            Rally.launchApp('CustomApp', {
+                name:"rally-tag-report",
+	            parentRepos:"danallen88/release-defect-trend"
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        .app {
+     /* Add app styles here */
+}
+
+    </style>
+</head>
+<body></body>
+</html>
