@@ -65,16 +65,17 @@ Ext.define('CustomApp', {
         
         // TODO: Does not remove duplicate UnformattedIDs, doesn't prefix UnformattedIDs with DE, US, TA
         //       Need to check for null and remove it before appending UnformattedIDs to the UsedIn field
+        var artifactIDs = [];
         Ext.Array.each(data, function(artifactRecord) {
             var recordTags = artifactRecord.get('Tags');
-            var artifactIDs = [];
             var id = artifactRecord.get('_UnformattedID');
             for(var i = 0; i < recordTags.length; i++) {
                 for (var j = 0; j < that.gRecords.length; j++) {
                     if (that.gRecords[j].OID === recordTags[i]) {
                         if (!Ext.Array.contains(artifactIDs, id)) {
+                            console.log(artifactIDs.length);
                             that.gRecords[j].UsedIn += (id + ", ");
-                            Ext.Array.push(id);
+                            artifactIDs.push(id);
                         }
                     }
                 }
