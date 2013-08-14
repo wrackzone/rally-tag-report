@@ -17,18 +17,19 @@ Ext.define('CustomApp', {
     
     _retrieveArtifacts: function(store, data) {
         
-        this.gTags = [];
+        this.gTags = {};
         
         var that = this;
         
         Ext.Array.each(data, function(tagRecord) {
-            that.gTags.push({
-                Name: tagRecord.get('Name'),
-                OID: tagRecord.get('ObjectID'),
-                UsedIn: ""
-            });
-            
             var tagID = tagRecord.get('ObjectID');
+            that.gTags[tagID] = {
+                Name: tagRecord.get('Name'),
+                UsedIn: "",
+                Creator: null,
+                LastUsed: null
+            };
+            
             
             Ext.create('Rally.data.lookback.SnapshotStore', {
                 autoLoad: true,
@@ -46,20 +47,26 @@ Ext.define('CustomApp', {
                             } else if (artifactType[artifactType.length - 1] == "Task") {
                                 id = 'TA' + artifactRecord.get('_UnformattedID');
                             }
-                            for (var j = 0; j < that.gTags.length; j++) {
-                                if (that.gTags[j].OID === tagID) {
-                                    if (!Ext.Array.contains(artifactIDs, id)) {
-                                        if (that.gTags[j].UsedIn === "") {
-                                            that.gTags[j].UsedIn = id;
-                                        }
-                                        else {
-                                            that.gTags[j].UsedIn += (", " + id);
-                                        }
-                                        artifactIDs.push(id);
-                                    }
+                            if (!_.contains(artifactIDs, id)) {
+                                if (that.gTags[tagID].UsedIn === "") {
+                                    that.gTags[tagID].UsedIn = id;
                                 }
+                                else {
+                                    that.gTags[tagID].UsedIn += (", " + id);
+                                }
+                                artifactIDs.push(id);
                             }
-                        });                        
+                        
+                            
+                        });
+                        
+                    /*
+                        // Filter out all records where a tag wasn't introduced for the first time
+                        var initialRecords =_.filter(records, function(record) { 
+                            return !_.contains(record._PreviousValues.Tags, tagID)
+                        });
+                    */    
+                        
                     },
                     scope: that
                 },
@@ -95,7 +102,7 @@ Ext.define('CustomApp', {
         this.add({
             xtype: 'rallygrid',
             store: Ext.create('Rally.data.custom.Store', {
-                data: this.gTags,
+                data: _.toArray(this.gTags),
                 pageSize: 200
             }),
             columnCfgs: [
@@ -106,7 +113,7 @@ Ext.define('CustomApp', {
                     text: 'Added By'//, dataIndex: 'Creator'
                 },
                 {
-                    text: 'Created On'//, dataIndex: 'DateCreated'
+                    text: 'Last Used'//, dataIndex: 'LastUsed'
                 },
                 {
                     text: 'Associated Artifacts', dataIndex: 'UsedIn'
