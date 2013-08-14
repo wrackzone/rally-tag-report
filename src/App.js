@@ -34,34 +34,42 @@ Ext.define('CustomApp', {
                 autoLoad: true,
                 listeners: {
                     load: function(dataStore, records) {
-                        // TODO: Doesn't prefix UnformattedIDs with DE, US, TA
                         var artifactIDs = [];
                         Ext.Array.each(records, function(artifactRecord) {
-                            var id = artifactRecord.get('_UnformattedID');
-                                for (var j = 0; j < that.gTags.length; j++) {
-                                    if (that.gTags[j].OID === tagID) {
-                                        if (!Ext.Array.contains(artifactIDs, id)) {
-                                            if (that.gTags[j].UsedIn === "") {
-                                                that.gTags[j].UsedIn = id;
-                                            }
-                                            else {
-                                                that.gTags[j].UsedIn += (", " + id);
-                                            }
-                                            artifactIDs.push(id);
+                            // Generate a list artifact IDs that the tag belongs to
+                            var id;
+                            var artifactType = artifactRecord.get('_TypeHierarchy');
+                            if (artifactType[artifactType.length - 1] == "HierarchicalRequirement") {
+                                id = 'US' + artifactRecord.get('_UnformattedID');
+                            } else if (artifactType[artifactType.length - 1] == "Defect") {
+                                id = 'DE' + artifactRecord.get('_UnformattedID');
+                            } else if (artifactType[artifactType.length - 1] == "Task") {
+                                id = 'TA' + artifactRecord.get('_UnformattedID');
+                            }
+                            for (var j = 0; j < that.gTags.length; j++) {
+                                if (that.gTags[j].OID === tagID) {
+                                    if (!Ext.Array.contains(artifactIDs, id)) {
+                                        if (that.gTags[j].UsedIn === "") {
+                                            that.gTags[j].UsedIn = id;
                                         }
+                                        else {
+                                            that.gTags[j].UsedIn += (", " + id);
+                                        }
+                                        artifactIDs.push(id);
                                     }
                                 }
-                
-                        });
+                            }
+                        });                        
                     },
                     scope: that
                 },
-                fetch: ['_UnformattedID', 'Tags', '_User'],
+                fetch: ['_UnformattedID', 'Tags', '_User', '_TypeHierarchy'],
+                hydrate: ['_TypeHierarchy'],
                 filters: [
                      {
                          property: '_TypeHierarchy',
                          operator: 'in',
-                         value: ['Defect']
+                         value: ['Defect', 'Task', 'HierarchicalRequirement']
                      },
                      {
                          property: 'Tags',
@@ -88,7 +96,7 @@ Ext.define('CustomApp', {
             xtype: 'rallygrid',
             store: Ext.create('Rally.data.custom.Store', {
                 data: this.gTags,
-                pageSize: 20
+                pageSize: 200
             }),
             columnCfgs: [
                 {
