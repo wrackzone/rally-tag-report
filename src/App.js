@@ -17,75 +17,77 @@ Ext.define('CustomApp', {
     
     _retrieveArtifacts: function(store, data) {
         
-        this.gRecords = [];
-        this.gData = data;  // Contains data from all tags
-        console.log(this.gData);
+        this.gTags = [];
         
         var that = this;
         
-        Ext.Array.each(that.gData, function(tagRecord) {
-            that.gRecords.push({
+        Ext.Array.each(data, function(tagRecord) {
+            that.gTags.push({
                 Name: tagRecord.get('Name'),
                 OID: tagRecord.get('ObjectID'),
-                UsedIn: null
-            });    
+                UsedIn: ""
+            });
+            
+            var tagID = tagRecord.get('ObjectID');
+            
+            Ext.create('Rally.data.lookback.SnapshotStore', {
+                autoLoad: true,
+                listeners: {
+                    load: function(dataStore, records) {
+                        // TODO: Doesn't prefix UnformattedIDs with DE, US, TA
+                        var artifactIDs = [];
+                        Ext.Array.each(records, function(artifactRecord) {
+                            var id = artifactRecord.get('_UnformattedID');
+                                for (var j = 0; j < that.gTags.length; j++) {
+                                    if (that.gTags[j].OID === tagID) {
+                                        if (!Ext.Array.contains(artifactIDs, id)) {
+                                            if (that.gTags[j].UsedIn === "") {
+                                                that.gTags[j].UsedIn = id;
+                                            }
+                                            else {
+                                                that.gTags[j].UsedIn += (", " + id);
+                                            }
+                                            artifactIDs.push(id);
+                                        }
+                                    }
+                                }
+                
+                        });
+                    },
+                    scope: that
+                },
+                fetch: ['_UnformattedID', 'Tags', '_User'],
+                filters: [
+                     {
+                         property: '_TypeHierarchy',
+                         operator: 'in',
+                         value: ['Defect']
+                     },
+                     {
+                         property: 'Tags',
+                         value: tagID
+                     }
+                ],
+                sorters: [
+                    {
+                        property: '_ValidFrom',
+                        direction: 'ASC'
+                        
+                    }
+                ]
+            });
+            
         });
         
-       Ext.create('Rally.data.lookback.SnapshotStore', {
-            autoLoad: true,
-            listeners: {
-                load: this._onDataLoaded,
-                scope: this
-            },
-            fetch: ['_UnformattedID', 'Tags'],
-            hydrate: ['Tags'],
-            filters: [
-                 {
-                     property: '_TypeHierarchy',
-                     operator: 'in',
-                     value: ['Defect']
-                 },
-                 {
-                     property: 'Tags',
-                     operator: '!=',
-                     value: null
-                 },
-                 {
-                     property: 'Tags._PreviousValues',
-                     operator: '=',
-                     value: null
-                 }
-            ]
-        });
+        this._renderGrid();
     },
 
-    _onDataLoaded: function(store, data) {
-        
-        var that = this;
-        
-        // TODO: Does not remove duplicate UnformattedIDs, doesn't prefix UnformattedIDs with DE, US, TA
-        //       Need to check for null and remove it before appending UnformattedIDs to the UsedIn field
-        var artifactIDs = [];
-        Ext.Array.each(data, function(artifactRecord) {
-            var recordTags = artifactRecord.get('Tags');
-            var id = artifactRecord.get('_UnformattedID');
-            for(var i = 0; i < recordTags.length; i++) {
-                for (var j = 0; j < that.gRecords.length; j++) {
-                    if (that.gRecords[j].OID === recordTags[i]) {
-                        if (!Ext.Array.contains(artifactIDs, id)) {
-                            console.log(artifactIDs.length);
-                            that.gRecords[j].UsedIn += (id + ", ");
-                            artifactIDs.push(id);
-                        }
-                    }
-                }
-            }
-        });
-
+    
+    _renderGrid: function() {
         this.add({
             xtype: 'rallygrid',
             store: Ext.create('Rally.data.custom.Store', {
-                data: that.gRecords,
+                data: this.gTags,
                 pageSize: 20
             }),
             columnCfgs: [
