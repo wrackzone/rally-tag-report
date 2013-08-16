@@ -21,7 +21,7 @@ Ext.define('CustomApp', {
         
         var that = this;
         
-        Ext.Array.each(data, function(tagRecord) {
+       _.each(data, function(tagRecord) {
             var tagID = tagRecord.get('ObjectID');
             that.gTags[tagID] = {
                 Name: tagRecord.get('Name'),
@@ -36,7 +36,7 @@ Ext.define('CustomApp', {
                 listeners: {
                     load: function(dataStore, records) {
                         var artifactIDs = [];
-                        Ext.Array.each(records, function(artifactRecord) {
+                        _.each(records, function(artifactRecord) {
                             // Generate a list artifact IDs that the tag belongs to
                             var id;
                             var artifactType = artifactRecord.get('_TypeHierarchy');
@@ -60,13 +60,12 @@ Ext.define('CustomApp', {
                             
                         });
                         
-                    /*
-                        // Filter out all records where a tag wasn't introduced for the first time
-                        var initialRecords =_.filter(records, function(record) { 
-                            return !_.contains(record._PreviousValues.Tags, tagID)
-                        });
-                    */    
-                        
+                        /*
+                            // Filter out all records where a tag wasn't introduced for the first time
+                            var initialRecords =_.filter(records, function(record) { 
+                                return !_.contains(record._PreviousValues.Tags, tagID)
+                            });
+                        */    
                     },
                     scope: that
                 },
@@ -107,7 +106,7 @@ Ext.define('CustomApp', {
             }),
             columnCfgs: [
                 {
-                    text: 'Name', dataIndex: 'Name', flex: 1
+                    text: 'Name', dataIndex: 'Name'
                 },
                 {
                     text: 'Added By'//, dataIndex: 'Creator'
@@ -116,7 +115,7 @@ Ext.define('CustomApp', {
                     text: 'Last Used'//, dataIndex: 'LastUsed'
                 },
                 {
-                    text: 'Associated Artifacts', dataIndex: 'UsedIn'
+                    text: 'Associated Artifacts', dataIndex: 'UsedIn', flex: 1
                 }
             ]
         });
