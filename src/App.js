@@ -21,6 +21,7 @@ Ext.define('CustomApp', {
         
         var that = this;
         
+        // For each of the tags, capture the name and then query on all associated artifacts
        _.each(data, function(tagRecord) {
             var tagID = tagRecord.get('ObjectID');
             that.gTags[tagID] = {
@@ -31,15 +32,21 @@ Ext.define('CustomApp', {
             };
             
             
+            // Querying on all associated artifacts for a given tag, and sorting them oldest to newest
             Ext.create('Rally.data.lookback.SnapshotStore', {
                 autoLoad: true,
                 listeners: {
                     load: function(dataStore, records) {
                         var artifactIDs = [];
+                        // Generate a list artifact IDs that the tag belongs to
+                        // TODO: add in other other taggable artifacts (test cases, test runs?)
                         _.each(records, function(artifactRecord) {
-                            // Generate a list artifact IDs that the tag belongs to
+                            // Since LBAPI only cares about UnformattedID, following code identifies the 
+                            // artifact type and prefixes it appropriately in the chart
                             var id;
                             var artifactType = artifactRecord.get('_TypeHierarchy');
+                            // artifactType is an array of hierarchy classifications where
+                            // last element is the specific artifact type (Defect, Task, etc.)
                             if (artifactType[artifactType.length - 1] == "HierarchicalRequirement") {
                                 id = 'US' + artifactRecord.get('_UnformattedID');
                             } else if (artifactType[artifactType.length - 1] == "Defect") {
@@ -47,6 +54,8 @@ Ext.define('CustomApp', {
                             } else if (artifactType[artifactType.length - 1] == "Task") {
                                 id = 'TA' + artifactRecord.get('_UnformattedID');
                             }
+                            // This block removes duplicate artifacts since we're dealing with snapshots
+                            // and builds list of associated artifacts
                             if (!_.contains(artifactIDs, id)) {
                                 if (that.gTags[tagID].UsedIn === "") {
                                     that.gTags[tagID].UsedIn = id;
