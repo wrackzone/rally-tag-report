@@ -3,40 +3,50 @@ Ext.define('CustomApp', {
     componentCls: 'app',
 
     launch: function() {
+        var that = this;
+        
+        // Only getting the current user's data...how do I get all users?
+        // Maybe need admin privileges?
+        // Fetch a list of users so we can map ObjectIDs to DisplayNames
+        Ext.create('Rally.data.WsapiDataStore', {
+           model: 'User',
+           fetch: ['ObjectID', 'DisplayName'],
+           autoLoad: true,
+           listeners: {
+               load: that._retrieveTags,
+               scope: that
+           }
+        });
+    },
+    
+    _retrieveTags: function(store, data) {
+        this.gUsers = {};
+        var that = this;
+        
+        console.log("userRecords: ", data);
+        console.log("userStore: ", store);
+        _.each(data, function(user) {
+            var userID = user.get('ObjectID');
+            that.gUsers[userID] = user.get('DisplayName');
+        });
+        
+        
         // Get a list of all tags
         Ext.create('Rally.data.WsapiDataStore', {
             model: 'Tag',
             fetch: ['Name'],
             autoLoad: true,
             listeners: {
-                load: this._retrieveArtifacts,
-                scope: this
+                load: that._retrieveArtifacts,
+                scope: that
             }
         });
     },
     
     _retrieveArtifacts: function(store, data) {
-        
         this.gTags = {};
-        
         var that = this;
-        
-        // This does not appear to be returning any data
-        // Fetch a list of users so we can map ObjectIDs to DisplayNames
-        /*Ext.create('Rally.data.WsapiDataStore', {
-           model: 'user',
-           fetch: ['ObjectID', 'DisplayName'],
-           autoLoad: true,
-           listeners: {
-               load: function(userStore, userRecords) {
-                   console.log(userRecords);
-                   _.each(userRecords, function(user) {
-                      that.users[user.ObjectID] = user.DisplayName;
-                   });
-               },
-               scope: that
-           }
-        });*/
+
         
         // For each of the tags, capture the name and then query on all associated artifacts
        _.each(data, function(tagRecord) {
@@ -101,9 +111,10 @@ Ext.define('CustomApp', {
                         // and the first snapshot in which the tag was introduced to capture the _User (Creator)
                         var sortedRecords = _.sortBy(initialRecords, "_ValidFrom");
                         
+                        // The date this is returning does not seem to be quite right
                         that.gTags[tagID].LastUsed += sortedRecords[sortedRecords.length - 1].data._ValidFrom;
                         
-                        //that.gTags[tagID].Creator += ", "+ that.users[sortedRecords[0].data._User].DisplayName;
+                        //that.gTags[tagID].Creator += ", "+ that.gUsers[sortedRecords[0].data._User].DisplayName;
                         
                         
                         
