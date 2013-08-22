@@ -21,14 +21,31 @@ Ext.define('CustomApp', {
         
         var that = this;
         
+        // This does not appear to be returning any data
+        // Fetch a list of users so we can map ObjectIDs to DisplayNames
+        /*Ext.create('Rally.data.WsapiDataStore', {
+           model: 'user',
+           fetch: ['ObjectID', 'DisplayName'],
+           autoLoad: true,
+           listeners: {
+               load: function(userStore, userRecords) {
+                   console.log(userRecords);
+                   _.each(userRecords, function(user) {
+                      that.users[user.ObjectID] = user.DisplayName;
+                   });
+               },
+               scope: that
+           }
+        });*/
+        
         // For each of the tags, capture the name and then query on all associated artifacts
        _.each(data, function(tagRecord) {
             var tagID = tagRecord.get('ObjectID');
             that.gTags[tagID] = {
                 Name: tagRecord.get('Name'),
                 UsedIn: "",
-                Creator: null,
-                LastUsed: null
+                Creator: "",
+                LastUsed: ""
             };
             
             
@@ -54,6 +71,8 @@ Ext.define('CustomApp', {
                             } else if (artifactType[artifactType.length - 1] == "Task") {
                                 id = 'TA' + artifactRecord.get('_UnformattedID');
                             }
+                            
+                            
                             // This block removes duplicate artifacts since we're dealing with snapshots
                             // and builds list of associated artifacts
                             if (!_.contains(artifactIDs, id)) {
@@ -69,16 +88,29 @@ Ext.define('CustomApp', {
                             
                         });
                         
-                        /*
-                            // Filter out all records where a tag wasn't introduced for the first time
-                            var initialRecords =_.filter(records, function(record) { 
-                                return !_.contains(record._PreviousValues.Tags, tagID)
-                            });
-                        */    
+                        
+                        // This is not filtering properly, it is still picking up ALL snapshots
+                        // rather than just the ones that introduced a tag
+                        // Filter out all records where a tag wasn't introduced for the first time
+                        // so we can capture what _User added the tag
+                        var initialRecords = _.reject(records, function(record) {
+                            return _.contains(record.data._PreviousValues.Tags, tagID);
+                        });
+                        
+                        // Sort all snapshots by date to determine the last snapshot in which a tag was introduced (LastUsed),
+                        // and the first snapshot in which the tag was introduced to capture the _User (Creator)
+                        var sortedRecords = _.sortBy(initialRecords, "_ValidFrom");
+                        
+                        that.gTags[tagID].LastUsed += sortedRecords[sortedRecords.length - 1].data._ValidFrom;
+                        
+                        //that.gTags[tagID].Creator += ", "+ that.users[sortedRecords[0].data._User].DisplayName;
+                        
+                        
+                        
                     },
                     scope: that
                 },
-                fetch: ['_UnformattedID', 'Tags', '_User', '_TypeHierarchy'],
+                fetch: ['_UnformattedID', 'Tags', '_User', '_TypeHierarchy', '_PreviousValues'],
                 hydrate: ['_TypeHierarchy'],
                 filters: [
                      {
@@ -118,10 +150,10 @@ Ext.define('CustomApp', {
                     text: 'Name', dataIndex: 'Name'
                 },
                 {
-                    text: 'Added By'//, dataIndex: 'Creator'
+                    text: 'Added By', dataIndex: 'Creator'
                 },
                 {
-                    text: 'Last Used'//, dataIndex: 'LastUsed'
+                    text: 'Last Used', dataIndex: 'LastUsed'
                 },
                 {
                     text: 'Associated Artifacts', dataIndex: 'UsedIn', flex: 1
