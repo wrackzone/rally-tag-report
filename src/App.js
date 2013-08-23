@@ -61,7 +61,6 @@ Ext.define('CustomApp', {
                     load: function(dataStore, records) {
                         var artifactIDs = [];
                         // Generate a list artifact IDs that the tag belongs to
-                        // TODO: add in other other taggable artifacts (test cases, test runs?)
                         _.each(records, function(artifactRecord) {
                             // Since LBAPI only cares about UnformattedID, following code identifies the 
                             // artifact type and prefixes it appropriately in the chart
@@ -75,6 +74,8 @@ Ext.define('CustomApp', {
                                 id = 'DE' + artifactRecord.get('_UnformattedID');
                             } else if (artifactType[artifactType.length - 1] == "Task") {
                                 id = 'TA' + artifactRecord.get('_UnformattedID');
+                            } else if (artifactType[artifactType.length - 1] == "TestCase") {
+                                id = 'TC' + artifactRecord.get('_UnformattedID');
                             }
                             
                             
@@ -122,7 +123,7 @@ Ext.define('CustomApp', {
                      {
                          property: '_TypeHierarchy',
                          operator: 'in',
-                         value: ['Defect', 'Task', 'HierarchicalRequirement']
+                         value: ['Defect', 'Task', 'HierarchicalRequirement', 'TestCase']
                      },
                      {
                          property: 'Tags',
