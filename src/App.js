@@ -3,18 +3,16 @@ Ext.define('CustomApp', {
     componentCls: 'app',
 
     launch: function() {
-        var that = this;
-        
-        // Only getting the current user's data...how do I get all users?
-        // Maybe need admin privileges?
         // Fetch a list of users so we can map ObjectIDs to DisplayNames
         Ext.create('Rally.data.WsapiDataStore', {
-           model: 'User',
-           fetch: ['ObjectID', 'DisplayName'],
+           model: 'user',
+           fetch: ['ObjectID', 'FirstName', 'LastName'],
            autoLoad: true,
+           limit: Infinity,
+           context: this.getContext().getDataContext(),
            listeners: {
-               load: that._retrieveTags,
-               scope: that
+               load: this._retrieveTags,
+               scope: this
            }
         });
     },
@@ -22,12 +20,9 @@ Ext.define('CustomApp', {
     _retrieveTags: function(store, data) {
         this.gUsers = {};
         var that = this;
-        
-        console.log("userRecords: ", data);
-        console.log("userStore: ", store);
         _.each(data, function(user) {
             var userID = user.get('ObjectID');
-            that.gUsers[userID] = user.get('DisplayName');
+            that.gUsers[userID] = user.get('FirstName') + " " + user.get('LastName');
         });
         
         
@@ -114,7 +109,7 @@ Ext.define('CustomApp', {
                         // The date this is returning does not seem to be quite right
                         that.gTags[tagID].LastUsed += sortedRecords[sortedRecords.length - 1].data._ValidFrom;
                         
-                        //that.gTags[tagID].Creator += ", "+ that.gUsers[sortedRecords[0].data._User].DisplayName;
+                        that.gTags[tagID].Creator += ", "+ that.gUsers[sortedRecords[0].data._User];
                         
                         
                         

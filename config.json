@@ -2,10 +2,11 @@
    "name": "rally-tag-report",
    "className": "CustomApp",
    "server": "https://rally1.rallydev.com",
-   "sdk": "2.0rc1",
+   "sdk": "2.0p5",
    "remote_javascript": [],
    "javascript": [
-      "src/App.js"
+      "src/App.js",
+      "//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.2/underscore-min.js"
    ],
    "remote_css": [],
    "css": [
