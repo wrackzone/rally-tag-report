@@ -107,9 +107,9 @@ Ext.define('CustomApp', {
                         var sortedRecords = _.sortBy(initialRecords, "_ValidFrom");
                         
                         // The date this is returning does not seem to be quite right
-                        that.gTags[tagID].LastUsed += sortedRecords[sortedRecords.length - 1].data._ValidFrom;
+                        that.gTags[tagID].LastUsed = sortedRecords[sortedRecords.length - 1].data._ValidFrom;
                         
-                        that.gTags[tagID].Creator += ", "+ that.gUsers[sortedRecords[0].data._User];
+                        that.gTags[tagID].Creator = that.gUsers[sortedRecords[0].data._User];
                         
                         
                         
