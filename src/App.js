@@ -112,6 +112,11 @@ Ext.define('CustomApp', {
                         
                         that.gTags[tagID].Creator = that.gUsers[sortedRecords[0].data._User];
                         
+                        if (that.down('#myGrid')) {
+                            that.remove('myGrid');
+                        }
+                        
+                        that._renderGrid();
                         
                         
                     },
@@ -140,14 +145,13 @@ Ext.define('CustomApp', {
             });
             
         });
-        
-        this._renderGrid();
     },
 
     
     _renderGrid: function() {
         this.add({
             xtype: 'rallygrid',
+            itemId: 'myGrid',
             store: Ext.create('Rally.data.custom.Store', {
                 data: _.toArray(this.gTags),
                 pageSize: 200
