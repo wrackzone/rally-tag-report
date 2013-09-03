@@ -100,7 +100,7 @@ Ext.define('CustomApp', {
                         // Filter out all records where a tag wasn't introduced for the first time
                         // so we can capture what _User added the tag
                         var initialRecords = _.reject(records, function(record) {
-                            return _.contains(record.data._PreviousValues.Tags, tagID);
+                            return (record.data != undefined) && _.contains(record.data._PreviousValues.Tags, tagID);
                         });
                         
                         // Sort all snapshots by date to determine the last snapshot in which a tag was introduced (LastUsed),
@@ -108,9 +108,10 @@ Ext.define('CustomApp', {
                         var sortedRecords = _.sortBy(initialRecords, "_ValidFrom");
                         
                         // The date this is returning does not seem to be quite right
-                        that.gTags[tagID].LastUsed = sortedRecords[sortedRecords.length - 1].data._ValidFrom;
+                        //that.gTags[tagID].LastUsed = sortedRecords[sortedRecords.length - 1].data._ValidFrom;
+                        that.gTags[tagID].LastUsed = !_.isUndefined(sortedRecords[sortedRecords.length - 1]) ? sortedRecords[sortedRecords.length - 1].data._ValidFrom : null ;
                         
-                        that.gTags[tagID].Creator = that.gUsers[sortedRecords[0].data._User];
+                        that.gTags[tagID].Creator = !_.isUndefined(sortedRecords[0]) ? that.gUsers[sortedRecords[0].data._User] : null;
                         
                         if (that.down('#myGrid')) {
                             that.remove('myGrid');
